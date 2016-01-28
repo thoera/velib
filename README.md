@@ -2,7 +2,7 @@
 
 <br>
 
-L'objectif de ce projet est d'expérimenter certaines des possibilités du package R `leaflet` (disponible sur le [CRAN](https://cran.r-project.org/web/packages/leaflet/index.html)) en cartographiant les stations de Vélib' parisiennes (et des villes alentours).
+L'objectif de ce projet est d'expérimenter certaines des possibilités du package R `leaflet` (disponible sur le [CRAN](https://cran.r-project.org/web/packages/leaflet/index.html)) en cartographiant les stations Vélib' parisiennes (et des villes alentours).
 
 `Leaflet` est, à l'origine, une [bibliothèque javascript](http://leafletjs.com/) dont l'objectif est de permettre la réalisation de cartes interactives (un exemple d'utilisation parmi d'autres sur le site du [New York Times](http://www.nytimes.com/projects/elections/2013/nyc-primary/mayor/map.html)).
 
@@ -47,9 +47,9 @@ while 1:
     time.sleep(1)
 ```
 
-Les fichiers sont enregistrés sous la forme : `velib_date_heure.csv`.
+Les fichiers sont enregistrés sous la forme : `velib_date_heure.csv`. Les données utilisées dans la suite ont été récupérées le mardi 26/01/2016 entre 9h00 et 21h00.
 
-#### Importation
+#### Importation et opérations élémentaires
 
 L'importation des fichiers plats (csv) préalablement récupérés se fait sans difficultés particulières : on définit le répertoire où les fichiers sont enregistrés et l'on importe l'ensemble dans une liste appelée `velib`.
 
@@ -61,7 +61,7 @@ velib <- lapply(datasets, function (x) read.csv(x, sep = ";",
                                                 stringsAsFactors = FALSE))
 ```
 
-Afin de faciliter la lecture et les diverses opérations réalisées par la suite, on peut donner des noms spécifiques aux différents *data frames* de la liste `velib`.
+Afin de faciliter les diverses opérations réalisées par la suite et la lecture des résultats, on peut donner des noms spécifiques aux différents *data frames* de la liste `velib`. Soit en l'occurrence, le nom des fichiers importés.
 
 ```R
 names(velib) <- gsub(pattern = ".csv", replacement = "", datasets)
@@ -74,7 +74,7 @@ lapply(velib, head)
 lapply(velib, dim)
 ```
 
-Chaque *data frame* est constitué de 12 variables qui donnent notamment des informations sur le nom, l'addresse et le contrat de chaque station.
+Chaque *data frame* est constitué de 12 variables qui donnent notamment des informations sur le nom, l'addresse et le contrat des stations.
 
 | number|                          name|                                           address| contract_name|
 |------:|-----------------------------:|-------------------------------------------------:|-------------:|
@@ -83,7 +83,7 @@ Chaque *data frame* est constitué de 12 variables qui donnent notamment des inf
 |  19115|  19115 - PORTE DE LA VILLETTE| 1 AVENUE DE LA PORTE DE LA VILLETTE - 75019 PARIS|         Paris|
 |  19027|             19027 - SERRURIER|         FACE 109 BOULEVARD SERURIER - 75019 PARIS|         Paris|
 
-Les données permettent également d'obtenir des informations sur l'état actuel d'une station : ouverte / fermée, sur la présence ou non d'une borne de paiement et de bonus ainsi que sur sa position geographique précise.
+De plus, les données permettent d'avoir des informations sur l'état des stations : ouverte / fermée, sur la présence ou non d'une borne de paiement et de bonus ainsi que sur la position geographique respecticve de chacune.
 
 | number| banking| bonus| status|                     position|
 |------:|-------:|-----:|------:|----------------------------:|
@@ -92,7 +92,7 @@ Les données permettent également d'obtenir des informations sur l'état actuel
 |  19115|    True| False|   OPEN| 48.8984900531, 2.38612000821|
 |  19027|    True|  True|   OPEN| 48.8806060536, 2.39789629061|
 
-Enfin, on peut également connaître le nombre de Vélib' disponibles, le nombre de points d'attache (libres et total) et l'heure de la derniere mise à jour pour chacune des stations.
+Enfin, on peut également connaître le nombre de Vélib' disponibles, le nombre de points d'attache (libres et total) ainsi que l'heure de la derniere mise à jour pour chacune des stations.
 
 | number| bike_stands| available_bike_stands| available_bikes|               last_update|
 |------:|-----------:|---------------------:|---------------:|-------------------------:|
@@ -101,13 +101,13 @@ Enfin, on peut également connaître le nombre de Vélib' disponibles, le nombre
 |  19115|          27|                     3|              24| 2016-01-20T12:42:02+01:00|
 |  19027|          18|                    18|               0| 2016-01-20T12:42:06+01:00|
 
-Si l'on souhaite se concentrer seulement sur les stations ouvertes, la sélection de celles-ci peut se faire facilement.
+Dans la suite, l'on se concentre seulement sur les stations ouvertes qui peuvent être facilement sélectionnées comme ci-après.
 
 ```R
 velib <- lapply(velib, function (x) filter(x, status == "OPEN"))
 ```
 
-On peut également calculer pour chaque station le taux de disponibilité (nombre de Vélib' divisé par le nombre total d'emplacements de la station considérée).
+On peut de plus calculer pour chaque station le taux de disponibilité (le nombre de Vélib' divisé par le nombre total d'emplacements de la station considérée).
 
 ```R
 velib <- lapply(velib, function (x) {
@@ -135,12 +135,15 @@ velib <- lapply(velib, lat_long)
 
 #### Cartographie de l'ensemble des stations
 
-La fonction `map_stations()` ci-après permet de représenter l'ensemble des stations Vélib'.
+La fonction `map_stations()` ci-après permet de représenter l'ensemble des stations Vélib' et de mettre en évidence quelques unes des possibilités du package `leaflet`.
 
 ```R
 map_stations <- function(df, x) {
-  # Extract the last 5 characters of the names of the data frames in the list df 
-  # and replace the character "h" by ":".
+  
+  # Extract the last 5 characters of the names of the data frames 
+  # in the list df and replace the character "h" by ":"
+  # (useful to display the hour for each map).
+  
   time_legend <- names(df[x]) %>%
     substr(start = (nchar(.) + 1) - 5, nchar(.)) %>%
     gsub(pattern = "h", replacement = ":")
@@ -152,7 +155,7 @@ map_stations <- function(df, x) {
                radius = ~ available_bikes * 5,
                color = ~ pal(availability), stroke = FALSE, fillOpacity = 0.8, 
                popup = ~ paste0(address, 
-                                "<br>",  # HTML tag to add a linebreak.
+                                "<br>",  # HTML tag to add a line.
                                 "Velib' disponibles : ",
                                 as.character(available_bikes), 
                                 " / ",
@@ -165,23 +168,23 @@ m <- lapply(names(velib), map_stations, df = velib)
 m  # Show the maps.
 ```
 
-* `leaflet()` permet de spécifier les données concernées ; 
+* `leaflet()` est l'instruction de base permettant de créer une ou des cartes ; 
 * `setView()` permet définir le niveau de zoom initial souhaité et de centrer la carte sur un point particulier ;
 * `addProviderTiles()` permet d'ajouter un ou des [*layers*](http://leaflet-extras.github.io/leaflet-providers/preview/) ;
-* `addCircles()` permet de positionner un marqueur sur la carte pour chaque station. Le rayon du marqueur étant fonction du nombre de Vélib' disponibles ;
-* `addLegend()` permet d'ajouter une légende à la carte (en l'occurence l'heure).
+* `addCircles()` permet de positionner un marqueur sur la carte pour chaque station. Le rayon du marqueur étant fonction du nombre de Vélib' disponibles et la couleur du taux de disponibilité ;
+* `addLegend()` permet d'ajouter une légende à la carte (en l'occurence simplement l'heure).
 
-Le résultat obtenu est le suivant (cliquer sur la carte ou [ici](http://htmlpreview.github.com/?https://github.com/thoera/velib/blob/master/maps/all/velib_2016-01-22_09h00_all.html) pour accéder à la version interactive) :
+Le résultat obtenu est le suivant (cliquer sur la carte ou [ici](http://htmlpreview.github.com/?https://github.com/thoera/velib/blob/master/maps/all/velib_2016-01-26_09h00_all.html) pour accéder à la version html interactive) :
 
-[![Map_1](/maps/all/velib_2016-01-22_09h00_all.png?raw=true)](http://htmlpreview.github.com/?https://github.com/thoera/velib/blob/master/maps/all/velib_2016-01-22_09h00_all.html)
+[![Map_1](/maps/all/velib_2016-01-26_09h00_all.png?raw=true)](http://htmlpreview.github.com/?https://github.com/thoera/velib/blob/master/maps/all/velib_2016-01-26_09h00_all.html)
 
-Chaque station est représentée par un cercle. Plus le nombre de Vélib' disponibles dans une station est important et plus le rayon du cercle est élevé. La couleur des cercles est, quand à elle, définie par le taux de disponibilité des stations. 
+Chaque station est représentée par un cercle. Plus le nombre de Vélib' disponibles dans une station est important et plus le rayon du cercle est important. La couleur des cercles est, quand à elle, définie par le taux de disponibilité des stations. 
 
 Outre des cartes uniques comme celle présentée ci-dessus, on peut également essayer de mettre en évidence des schémas de fonctionnement dans l'utilisation des Vélib' en assemblant les données d'une journée entière (ou de tout autre période d'intérêt).
 
-On peut, par exemple, voir s'il existe une deux types de stations distincts :
-* des stations "domicile" qui se videraient le matin et se rempliraient le soir ;
-* des stations "travail" qui, au contraire, se rempliraient le matin et se videraient le soir.
+On peut, par exemple, voir s'il existe plusieurs types de stations distincts comme :
+* des stations "Domicile" qui se videraient le matin et se rempliraient le soir ;
+* des stations "Travail" qui, au contraire, se rempliraient le matin et se videraient le soir.
 
 Plusieurs méthodes sont possibles pour réaliser cette opération d'assemblage :
 * le package R `animation`;
@@ -191,15 +194,15 @@ Plusieurs méthodes sont possibles pour réaliser cette opération d'assemblage 
 
 L'assemblage suivant a, par exemple, été réalisé avec GIMP :
 
-![GIF_1](https://github.com/thoera/velib/blob/master/maps/all/velib_2016-01-22_all.gif)
+![GIF_1](https://github.com/thoera/velib/blob/master/maps/all/velib_2016-01-26_all.gif)
 
 #### Cartographie des stations en les regroupant par arrondissement
 
 Le nombre de stations de Vélib' parisiennes étant important (plus de 1 200 stations uniques référencées dans les données), la quantité d'informations visuelles l'est également.
 
-Pour pallier ce problème, une solution envisageable consiste à regrouper les stations par arrondissement (ou ville si les stations se situent en dehors de Paris). 
+Pour contrer cette difficulté, une solution envisageable peut consister à regrouper les stations par arrondissement (ou ville si les stations se situent en dehors de Paris). 
 
-Si ce regroupement induit nécessairement une perte d'information, il permet en revanche de limiter à une cinquantaine le nombre de stations et facilite ainsi sensiblement l'exploration visuelle (le risque étant que le regroupement soit trop grossier et masque l'essentiel des schémas existants).
+Si ce regroupement induit nécessairement une perte d'information, il permet en revanche de limiter à une cinquantaine le nombre de stations représentées et facilite ainsi sensiblement l'exploration visuelle (le risque étant que le regroupement soit trop grossier et masque l'essentiel des schémas existants).
 
 Dans cette optique, la première tâche consiste à isoler la ville et le code postal de l'adresse complète pour chacune des stations. Ceci peut être réalisé en utilisant une [expression régulière](https://en.wikipedia.org/wiki/Regular_expression) adéquate sur la variable *address*.
 
@@ -225,7 +228,7 @@ unique_arrond <- lapply(velib, function (x) {
 })
 
 unique_arrond <- Reduce(function(df1, df2) {
-  full_join(df1, df2, by = "address_short")}, 
+  merge(df1, df2, all = TRUE, by = "address_short")}, 
   unique_arrond)
 ```
 
@@ -241,32 +244,34 @@ L'étape suivante consiste à regrouper les stations par arrondissement (ou vill
 
 ```R
 group_by_arrond <- function (x) {
-  x %>%
-    select(bike_stands, available_bike_stands, available_bikes,
-           address_short) %>%
+  select(x, bike_stands, available_bike_stands, 
+         available_bikes, address_short) %>%
     group_by(address_short) %>%
     summarise(bike_stands = sum(bike_stands), 
               available_bike_stands = sum(available_bike_stands),
               available_bikes = sum(available_bikes))  
 }
 
-velib_grouped <- lapply(velib, group_by_arrond)
+velib_grouped_by_arrond <- lapply(velib, group_by_arrond)
 ```
 
 Enfin, on peut fusionner le résultat obtenu avec les centres géographiques des arrondissements et villes récupérées précedemment.
 
 ```R
-velib_grouped <- lapply(velib_grouped, function (x) {
+velib_grouped_by_arrond <- lapply(velib_grouped_by_arrond, function (x) {
   left_join(x, unique_arrond, by = "address_short")
 })
 ```
 
-La fonction `map_stations_group`ci-dessous permet alors d'obtenir les cartes souhaitées.
+La fonction `map_stations_grouped_by_arrond`ci-dessous permet alors d'obtenir les cartes souhaitées.
 
 ```R
-map_stations_group <- function(df, x) {
-  # Extract the last 5 characters of the names of the data frames in the list df 
-  # and replace the character "h" by ":".
+map_stations_grouped_by_arrond <- function(df, x) {
+  
+  # Extract the last 5 characters of the names of the data frames 
+  # in the list df and replace the character "h" by ":" 
+  # (useful to display the hour for each map).
+  
   time_legend <- names(df[x]) %>%
     substr(start = (nchar(.) + 1) - 5, nchar(.)) %>%
     gsub(pattern = "h", replacement = ":")
@@ -278,7 +283,7 @@ map_stations_group <- function(df, x) {
                radius = ~ available_bikes,
                color = ~ pal(availability), stroke = FALSE, fillOpacity = 0.8, 
                popup = ~ paste0(address_short, 
-                                "<br>",  # HTML tag to add a linebreak.
+                                "<br>",  # HTML tag to add a line.
                                 "Velib' disponibles : ",
                                 as.character(available_bikes), 
                                 " / ",
@@ -287,20 +292,24 @@ map_stations_group <- function(df, x) {
               title = time_legend)
 }
 
-m <- lapply(names(velib_grouped), map_stations_group, df = velib_grouped)
+m <- lapply(names(velib_grouped_by_arrond), map_stations_grouped_by_arrond, 
+            df = velib_grouped_by_arrond)
 m  # Show the maps.
 ```
 
-On peut, comme précédemment, réaliser une animation avec l'ensemble des cartes ainsi construitent sur une période donnée.
+On peut, comme précédemment, réaliser une animation avec l'ensemble des cartes de la journée.
 
-![GIF_2](https://github.com/thoera/velib/blob/master/maps/arrondissement/velib_2016-01-22_by_arrond.gif)
+![GIF_2](https://github.com/thoera/velib/blob/master/maps/arrondissement/velib_2016-01-26_by_arrond.gif)
 
-#### Créer une carte en utilisant des icônes personnalisées
+#### Créer une carte en utilisant une (ou des) icône(s) personnalisée(s)
 
-Le package `leaflet` permet à l'utilisateur de définir simplement une ou des icônes pour ces cartes.
+Le package `leaflet` permet à l'utilisateur de définir simplement une ou des icônes (ou marqueurs).
 
-En seulement quelques lignes de code, on peut ainsi réaliser des cartes personnalisées utilisant des icônes adaptées au sujet ou phénomène étudié.
+En seulement quelques lignes de code, on peut ainsi réaliser des cartes personnalisées utilisant des marqueurs adaptés au sujet ou phénomène étudié.
 
 La carte suivante représente ainsi les stations Vélib' du 1er arrondissement avec une icône faite maison.
 
 [![Map_2](/maps/velib_icon/stations_1_arron_velib_icon.png?raw=true)](http://htmlpreview.github.com/?https://github.com/thoera/velib/blob/master/maps/velib_icon/stations_1_arron_velib_icon.html)
+
+#### Un indicateur pour classifier les stations : le nombre de Vélib' disponibles entre 10h00 et 17h00
+
