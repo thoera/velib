@@ -389,7 +389,7 @@ On peut alors créer une carte où les stations du type "Travail" sont représen
 
 [![Map_3](/maps/working_residential/working_residential.png?raw=true)](http://htmlpreview.github.com/?https://github.com/thoera/velib/blob/master/maps/working_residential/working_residential.html)
 
-On remarque ainsi que les stations "Travail" sont d'une part plutôt au centre de Paris et d'autre part relativement bien groupées.
+On remarque ainsi que les stations "Travail" sont, d'une part, plutôt au centre de Paris et, d'autre part, relativement groupées en certaines zones particulières.
 
 Le graphique suivant présente pour les deux type de stations le taux de Vélib' disponibles sur l'ensemble de la période considérée. On y observe bien une chute brutale du taux de disponibilité des stations "Travail" en fin de journée (dès 17h00).  Le choix des boîtes à moustaches (ou *box plots*) permet d'appréhender la dispersion au sein de chaque catégorie.
 
