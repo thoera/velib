@@ -436,7 +436,7 @@ proper_names <- names(velib) %>%
 
 names(working_residential) <- c("number", proper_names)
 
-# Compoute the number of available bikes between 10:00 am and 5:00 pm 
+# Compute the number of available bikes between 10:00 am and 5:00 pm 
 # and also the number of available bikes for the whole day.
 
 available_bikes_10am_5pm <- as.character()
@@ -508,6 +508,7 @@ m <- leaflet(data = working_residential) %>%
                               as.character(indicator)))
 
 # Show the map.
+
 m
 
 # Save the map as both html and png files.
