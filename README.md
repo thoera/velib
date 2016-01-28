@@ -187,7 +187,7 @@ On peut, par exemple, voir s'il existe plusieurs types de stations distincts com
 * des stations "Travail" qui, au contraire, se rempliraient le matin et se videraient le soir.
 
 Plusieurs méthodes sont possibles pour réaliser cette opération d'assemblage :
-* le package R `animation`;
+* le package R `animation` ;
 * l'utilisation d'outils comme ImageMagick ou son *fork* GraphicsMagick ;
 * des outils d'édition et de retouche d'image (GIMP, Photoshop, etc.)
 * autres...
@@ -263,7 +263,7 @@ velib_grouped_by_arrond <- lapply(velib_grouped_by_arrond, function (x) {
 })
 ```
 
-La fonction `map_stations_grouped_by_arrond`ci-dessous permet alors d'obtenir les cartes souhaitées.
+La fonction `map_stations_grouped_by_arrond` ci-dessous permet alors d'obtenir les cartes souhaitées.
 
 ```R
 map_stations_grouped_by_arrond <- function(df, x) {
@@ -307,9 +307,18 @@ Le package `leaflet` permet à l'utilisateur de définir simplement une ou des i
 
 En seulement quelques lignes de code, on peut ainsi réaliser des cartes personnalisées utilisant des marqueurs adaptés au sujet ou phénomène étudié.
 
-La carte suivante représente ainsi les stations Vélib' du 1er arrondissement avec une icône faite maison.
+Plusieurs fonction permettent de créer ces propres icônes : `makeIcon()`, `icons()` et `iconList()`. Ces trois fonctions ont leur utilité selon le nombre d'icônes à créer, le nombre de paramètres distincts, etc.
+
+Dans le cas simple où un seul marqueur est créé, la fonction `makeIcon()` est simple d'utilisation puisqu'il suffit de spécifier le fichier à utiliser comme icône et les dimmensions de celle-ci.
+
+```R
+velib_icon <- makeIcon(iconUrl = "velib_icon_175x112.png", iconWidth = 80, 
+                       iconHeight = 51)
+```
+
+La carte suivante représente ainsi les stations Vélib' du 1er arrondissement avec une icône particulièrement adaptée.
 
 [![Map_2](/maps/velib_icon/stations_1_arron_velib_icon.png?raw=true)](http://htmlpreview.github.com/?https://github.com/thoera/velib/blob/master/maps/velib_icon/stations_1_arron_velib_icon.html)
 
-#### Un indicateur pour classifier les stations : le nombre de Vélib' disponibles entre 10h00 et 17h00
+#### Un indicateur de classification : le nombre de Vélib' disponibles entre 10h00 et 17h00
 
