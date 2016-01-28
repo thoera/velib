@@ -196,6 +196,9 @@ L'assemblage suivant a, par exemple, été réalisé avec GIMP :
 
 ![GIF_1](https://github.com/thoera/velib/blob/master/maps/all/velib_2016-01-26_all.gif)
 
+Globalement, on peut ainsi observer que les stations du centre de Paris semblent se remplir en milieu de journée et se vider progressivement en fin d'après-midi au détriment des stations des arrondissements plus extérieurs. 
+Ceci pourrait confirmer l'hypothèse de stations "Domicile" et "Travail" puisque beaucoup d'entreprises possèdent en effet des locaux le long de la Seine.
+
 #### Cartographie des stations en les regroupant par arrondissement
 
 Le nombre de stations de Vélib' parisiennes étant important (plus de 1 200 stations uniques référencées dans les données), la quantité d'informations visuelles l'est également.
@@ -320,5 +323,74 @@ La carte suivante représente ainsi les stations Vélib' du 1er arrondissement a
 
 [![Map_2](/maps/velib_icon/stations_1_arron_velib_icon.png?raw=true)](http://htmlpreview.github.com/?https://github.com/thoera/velib/blob/master/maps/velib_icon/stations_1_arron_velib_icon.html)
 
-#### Un indicateur de classification : le nombre de Vélib' disponibles entre 10h00 et 17h00
+#### Le nombre de Vélib' disponibles entre 10h00 et 17h00 comme indicateur ?
 
+Une autre façon de mettre en évidence des schémas dans l'utilisation des Vélib' consiste à construire un indicateur permettant de quantifier le taux de disponibilité d'une station au cours de la journée.
+
+Une possibilité consiste ainsi à calculer pour chaque station le rapport entre le nombre de Vélib' disponibles entre 10h00 et 17h00 et le nombre de Vélib' disponibles sur l'ensemble de la journée (plus précisément entre 9h00 et 21h00 dans ce cas particulier). 
+
+Les stations dont la valeur de l'indicateur est relativement importante pourront être considérées comme des stations "Travail" (une part plus importante de vélos disponibles en journée) et les autres comme des stations "Domicile".
+
+Cette opération est d'autant plus aisée que les données sont présentées sous la forme d'un unique *data frame* regroupant pour chacune des stations le nombre de Vélib' disponibles aux différentes heures de la journée. 
+
+On commence ainsi par sélectionner les seules variables d'intérêt (l'identifiant des stations et le nombre de vélos disponibles) et par fusionner le tout dans un seul *data frame*.
+
+```R
+working_residential <- lapply(velib, function (x) {
+  select(x, number, available_bikes)
+})
+
+working_residential <- Reduce(function(df1, df2) {
+  merge(df1, df2, all = TRUE, by = "number")}, 
+  working_residential)
+```
+On peut alors calculer les deux sommes nécessaires afin d'effectuer ensuite le ratio représentant notre indicateur. 
+
+```R
+available_bikes_10am_5pm <- as.character()
+
+for (i in seq(10, 16)) {
+  available_bikes_10am_5pm <- c(available_bikes_10am_5pm,
+                                paste0("available_bikes_", i, ":00"))
+  for (j in seq(15, 45, by = 15)) {
+    available_bikes_10am_5pm <- c(available_bikes_10am_5pm,
+                                  paste0("available_bikes_", i, ":", j))
+  }
+}
+
+working_residential <- working_residential %>%
+  mutate(available_bikes_10am_5pm = select(., 
+                                           one_of(available_bikes_10am_5pm, 
+                                                  "available_bikes_17:00")) %>% 
+           rowSums(),
+         available_bikes_9am_9pm = select(., contains("available_bikes")) %>% 
+           rowSums())
+
+# Compute the indicator as:
+# "indicator" = "available_bikes_10am_5pm" / "available_bikes_9am_9pm"
+
+working_residential <- working_residential %>%
+  mutate(indicator = ifelse(available_bikes_9am_9pm != 0,
+                            (available_bikes_10am_5pm / 
+                               available_bikes_9am_9pm) %>%
+                              round(2), 0))
+```
+
+Une fois le calcul de l'indicateur effectué, il reste à choisir un seuil permettant de classifier les stations dans une catégorie ou une autre. Le choix fait ici est simple mais hautement subjectif : les 25% des stations ayant une valeur de l'indicateur la plus élevée sont classés dans la catégorie "Travail" et les trois quarts restants dans la catégorie "Domicile".
+
+```R
+threshold <- quantile(working_residential$indicator,  probs = c(0.75))
+
+working_residential <- working_residential %>%
+  mutate(indicator_w_r = ifelse(indicator > threshold, "w", "r"))
+```
+
+On peut alors créer une carte où les stations du type "Travail" sont représentés en rouge et les stations du type "Domicile" en bleu/vert. 
+
+[![Map_3](/maps/working_residential/working_residential.png?raw=true)](http://htmlpreview.github.com/?https://github.com/thoera/velib/blob/master/maps/working_residential/working_residential.html)
+
+On remarque ainsi que les stations "Travail" sont d'une part plutôt au centre de Paris et d'autre part relativement bien groupées.
+
+Le graphique suivant présente pour les deux type de stations le taux de Vélib' disponibles sur l'ensemble de la période considérée. On y observe bien une chute brutale du taux de disponibilité des stations "Travail" en fin de journée (dès 17h00).  Le choix des boîtes à moustaches (ou *box plots*) permet d'appréhender la dispersion au sein de chaque catégorie.
+
+![Boxplots](/maps/working_residential/boxplots.png)
