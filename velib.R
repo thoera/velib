@@ -153,7 +153,9 @@ map_stations <- function(df, x) {
 
 # Call the function "map_stations".
 m <- lapply(names(velib), map_stations, df = velib)
-m  # Show the maps.
+
+# Show the maps.
+m
 
 # Save the maps as both html and png files.
 setwd("../maps/all")
@@ -288,7 +290,9 @@ map_stations_grouped_by_arrond <- function(df, x) {
 # Call the function "map_stations_grouped_by_arrond".
 m <- lapply(names(velib_grouped_by_arrond), map_stations_grouped_by_arrond, 
             df = velib_grouped_by_arrond)
-m  # Show the maps.
+
+# Show the maps.
+m
 
 # Save the maps as both html and png files.
 setwd("../arrondissement")
