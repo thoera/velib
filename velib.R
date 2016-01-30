@@ -67,7 +67,6 @@ barplot_function <- function (df, x) {
 }
 
 # Call the function "barplot_function".
-
 # for (i in seq_along(velib)) {
 #   list_ggplot <- lapply(factor_cols, barplot_function, df = velib[[i]])
 #   do.call(grid.arrange, list_ggplot)
