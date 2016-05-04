@@ -20,8 +20,8 @@ setwd("./velib/data")
 datasets <- list.files(pattern = "*.csv")
 
 # Import the files into a list ("velib").
-velib <- lapply(datasets, function (x) read.csv(x, sep = ";", 
-                                                stringsAsFactors = FALSE))
+velib <- lapply(datasets, function(x) read.csv(x, sep = ";", 
+                                               stringsAsFactors = FALSE))
 
 # Give some names to the data frames into the list by using the names 
 # of the files imported (but without the .csv at the end).
@@ -32,7 +32,7 @@ lapply(velib, head)
 lapply(velib, dim)
 
 # NA values.
-lapply(velib, function (x) sum(is.na(x)))
+lapply(velib, function(x) sum(is.na(x)))
 
 #----------
 
@@ -44,7 +44,7 @@ lapply(velib, function (x) sum(is.na(x)))
 numeric_cols <- c("bike_stands", "available_bike_stands", "available_bikes")
 
 # Create a function called "histogram_function" to plot histograms.
-histogram_function <- function (df, x) {
+histogram_function <- function(df, x) {
   ggplot(df, aes_string(x)) +
     geom_histogram()
 }
@@ -61,7 +61,7 @@ histogram_function <- function (df, x) {
 factor_cols <- c("banking", "bonus", "status")
 
 # Create a function called "barplot_function" to plot barplots.
-barplot_function <- function (df, x) {
+barplot_function <- function(df, x) {
   ggplot(df, aes_string(x)) +
     geom_bar()
 }
@@ -98,14 +98,14 @@ one_way_table <- function(x) {
 # latitude: 2.352427
 
 # Keep only the stations "OPEN".
-velib <- lapply(velib, function (x) filter(x, status == "OPEN"))
+velib <- lapply(velib, function(x) filter(x, status == "OPEN"))
 
 # Convert lower-case addresses to upper-case.
-velib <- lapply(velib, function (x) mutate(x, address = toupper(address)))
+velib <- lapply(velib, function(x) mutate(x, address = toupper(address)))
 
 # Create a function called "lat_long" to split the variable "position" in 
 # latitude and longitude.
-lat_long <- function (x) {
+lat_long <- function(x) {
   x %>%
     mutate(latitude = gsub(pattern = ",.+", replacement = "", position),
            longitude = gsub(pattern = ".+,", replacement = "", position))
@@ -115,7 +115,7 @@ lat_long <- function (x) {
 velib <- lapply(velib, lat_long)
 
 # Compute the availability rate for each station.
-velib <- lapply(velib, function (x) {
+velib <- lapply(velib, function(x) {
   mutate(x, availability = available_bikes / bike_stands * 100)
 })
 
@@ -176,7 +176,7 @@ for (i in seq_along(m)) {
 # Create a function called "zip_city" to build a new column "address_short" 
 # from the variable "address".
 # This variable contains only the zip code and the city (e.g. 75001 PARIS).
-zip_city <- function (x) {
+zip_city <- function(x) {
   x %>%
     mutate(address_short = regmatches(address, gregexpr(pattern = "[0-9]{5,}.+",
                                                         address)) %>%
@@ -190,7 +190,7 @@ velib <- lapply(velib, zip_city)
 
 # Create a function called "fix_names" to fix some mistakes 
 # in the name of the cities.
-fix_names <- function (x) {
+fix_names <- function(x) {
   mutate(x, address_short = plyr::mapvalues(address_short,
                                             c("92100 ISSY LES MOULINEAUX",
                                               "92200 NEUILLY",
@@ -214,7 +214,7 @@ velib <- lapply(velib, fix_names)
 # Create a data frame (with just one column) of all unique arrondissements 
 # (or cities if not in Paris) for each data frame of the main list and 
 # merge them into one.
-unique_arrond <- lapply(velib, function (x) {
+unique_arrond <- lapply(velib, function(x) {
   select(x, address_short) %>%
     unique()
 })
@@ -234,7 +234,7 @@ unique_arrond <- cbind(unique_arrond, geocodes)
 # Create a function called "group_by_arrond" which group the velib stations 
 # by arrondissement (or by city if not in Paris) and compute 
 # the number of available bikes.
-group_by_arrond <- function (x) {
+group_by_arrond <- function(x) {
   select(x, bike_stands, available_bike_stands, 
          available_bikes, address_short) %>%
     group_by(address_short) %>%
@@ -248,12 +248,12 @@ velib_grouped_by_arrond <- lapply(velib, group_by_arrond)
 
 # Merge the result with the latitude and the longitude for each arrondissement 
 # (or city if not in Paris).
-velib_grouped_by_arrond <- lapply(velib_grouped_by_arrond, function (x) {
+velib_grouped_by_arrond <- lapply(velib_grouped_by_arrond, function(x) {
   left_join(x, unique_arrond, by = "address_short")
 })
 
 # Compute the availability rate.
-velib_grouped_by_arrond <- lapply(velib_grouped_by_arrond, function (x) {
+velib_grouped_by_arrond <- lapply(velib_grouped_by_arrond, function(x) {
   mutate(x, availability = available_bikes / bike_stands * 100)
 })
 
@@ -371,7 +371,7 @@ webshot(url = "stations_1_arron_velib_icon.html",
 
 # Select only the station number and the number of available bikes for each
 # data frame of the list velib.
-working_residential <- lapply(velib, function (x) {
+working_residential <- lapply(velib, function(x) {
   select(x, number, available_bikes)
 })
 
