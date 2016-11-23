@@ -174,9 +174,9 @@ m  # Show the maps.
 * `addCircles()` permet de positionner un marqueur sur la carte pour chaque station. Le rayon du marqueur étant fonction du nombre de Vélib' disponibles et la couleur du taux de disponibilité ;
 * `addLegend()` permet d'ajouter une légende à la carte (en l'occurence simplement l'heure).
 
-Le résultat obtenu est le suivant (cliquer sur la carte ou [ici](http://htmlpreview.github.com/?https://github.com/thoera/velib/blob/master/maps/all/velib_2016-01-26_09h00_all.html) pour accéder à la version html interactive) :
+Le résultat obtenu est le suivant (cliquer sur la carte ou [ici](https://rawgit.com/thoera/velib/master/maps/all/velib_2016-01-26_09h00_all.html) pour accéder à la version html interactive) :
 
-[![Map_1](/maps/all/velib_2016-01-26_09h00_all.png?raw=true)](http://htmlpreview.github.com/?https://github.com/thoera/velib/blob/master/maps/all/velib_2016-01-26_09h00_all.html)
+[![Map_1](/maps/all/velib_2016-01-26_09h00_all.png?raw=true)](https://rawgit.com/thoera/velib/master/maps/all/velib_2016-01-26_09h00_all.html)
 
 Chaque station est représentée par un cercle. Plus le nombre de Vélib' disponibles dans une station est important et plus le rayon du cercle est important. La couleur des cercles est, quand à elle, définie par le taux de disponibilité des stations. 
 
@@ -321,7 +321,7 @@ velib_icon <- makeIcon(iconUrl = "velib_icon_175x112.png", iconWidth = 80,
 
 La carte suivante représente ainsi les stations Vélib' du 1er arrondissement avec une icône particulièrement adaptée.
 
-[![Map_2](/maps/velib_icon/stations_1_arron_velib_icon.png?raw=true)](http://htmlpreview.github.com/?https://github.com/thoera/velib/blob/master/maps/velib_icon/stations_1_arron_velib_icon.html)
+[![Map_2](/maps/velib_icon/stations_1_arron_velib_icon.png?raw=true)](https://rawgit.com/thoera/velib/master/maps/velib_icon/stations_1_arron_velib_icon.html)
 
 #### Le nombre de Vélib' disponibles entre 10h00 et 17h00 comme indicateur ?
 
@@ -387,7 +387,7 @@ working_residential <- working_residential %>%
 
 On peut alors créer une carte où les stations du type "Travail" sont représentés en rouge et les stations du type "Domicile" en bleu/vert. 
 
-[![Map_3](/maps/working_residential/working_residential.png?raw=true)](http://htmlpreview.github.com/?https://github.com/thoera/velib/blob/master/maps/working_residential/working_residential.html)
+[![Map_3](/maps/working_residential/working_residential.png?raw=true)](https://rawgit.com/thoera/velib/master/maps/working_residential/working_residential.html)
 
 On remarque ainsi que les stations "Travail" sont, d'une part, plutôt au centre de Paris et, d'autre part, relativement groupées en certaines zones particulières.
 
